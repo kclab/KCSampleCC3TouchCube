@@ -9,6 +9,9 @@
 #import "KCSampleCC3TouchCubeLayer.h"
 #import "KCSampleCC3TouchCubeWorld.h"
 
+@interface CC3Layer (TemplateMethods)
+-(BOOL) handleTouch: (UITouch*) touch ofType: (uint) touchType;
+@end
 
 @implementation KCSampleCC3TouchCubeLayer
 - (void)dealloc {
@@ -25,7 +28,9 @@
  * The default implementation does nothing. It is not necessary to invoke the
  * superclass implementation when overriding in a subclass.
  */
--(void) initializeControls {}
+-(void) initializeControls {
+  self.isTouchEnabled = YES;
+}
 
  // The ccTouchMoved:withEvent: method is optional for the <CCTouchDelegateProtocol>.
  // The event dispatcher will not dispatch events for which there is no method
@@ -34,11 +39,11 @@
  // CC3Layer implementation. To receive and handle touch-move events for object
  // picking,uncomment the following method implementation. To receive touch events,
  // you must also set the isTouchEnabled property of this instance to YES.
-/*
+
  // Handles intermediate finger-moved touch events. 
 -(void) ccTouchMoved: (UITouch *)touch withEvent: (UIEvent *)event {
 	[self handleTouch: touch ofType: kCCTouchMoved];
 }
-*/
+
 
 @end
