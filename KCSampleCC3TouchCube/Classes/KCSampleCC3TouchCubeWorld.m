@@ -15,6 +15,7 @@
 
 #import "CC3ParametricMeshNodes.h"
 #import "CCTouchDispatcher.h"
+#import "CC3VertexArrayMesh.h"
 
 #define VALUE_THRESHOLD_MOVE 5
 #define ANGLE_ROTATE 3.0
@@ -33,6 +34,11 @@ CGPoint lastTouchEventPoint;
 @property(nonatomic, retain) CC3Node* nodeCenter;
 - (CC3Node*)cubuTouchableSide;
 - (void)updateRotateCenterNodeIfNeedWithLocation:(CGPoint)currentTouchEventPoint;
+- (CC3MeshNode*)meshNodeWithName:(NSString*)nodeName 
+                           color:(ccColor3B)color
+                    LengthOnSide:(CGFloat)lengthOnSide 
+                        location:(CC3Vector)loc
+                         rotaion:(CC3Vector)rot;
 @end
 
 @implementation KCSampleCC3TouchCubeWorld
@@ -53,89 +59,109 @@ CGPoint lastTouchEventPoint;
 	// Create a light, place it back and to the left at a specific
 	// position (not just directional lighting), and add it to the world
 	CC3Light* lamp = [CC3Light nodeWithName: @"Lamp"];
-	lamp.location = cc3v( -2.0, 0.0, 0.0 );
+	lamp.location = cc3v( 0.0, 50.0, 50.0 );
 	lamp.isDirectionalOnly = NO;
 	[cam addChild: lamp];
+  
+  //self.ambientLight = kCCC4FBlackTransparent;
 
   CC3Node* firstCube = [self cubuTouchableSide];
   self.nodeCenter = firstCube;
   [self addChild:firstCube];
 }
 
+- (CC3MeshNode*)meshNodeWithName:(NSString*)nodeName 
+                           color:(ccColor3B)color
+                    LengthOnSide:(CGFloat)lengthOnSide 
+                        location:(CC3Vector)loc
+                         rotaion:(CC3Vector)rot {
+  
+  CC3MeshNode* mn = [CC3BoxNode nodeWithName:nodeName];
+	CC3BoundingBox bBox;
+  CGFloat lengthOnSideHalf = lengthOnSide / 2;
+	bBox.minimum = cc3v(-lengthOnSideHalf, -lengthOnSideHalf, 0.0);
+	bBox.maximum = cc3v( lengthOnSideHalf,  lengthOnSideHalf, 0.0);
+	[mn populateAsSolidBox: bBox];
+	mn.material = [CC3Material material];
+  mn.material.color = color;
+	mn.location = loc;
+  mn.rotation = rot;
+  mn.isTouchEnabled = YES;
+  
+  return mn;
+}
+
 - (CC3Node*)cubuTouchableSide {
   
   CC3Node* node = [CC3Node nodeWithName:@"nodeCenter"];
   node.location = cc3v(0.0, 0.0, 0.0);
-  //node.rotation = cc3v(-30.0, 45.0, 0.0);
   
-  CGFloat lengthOnSide = LENGTH_ON_SIDE_FOR_CUBE;
-  CGFloat lengthOnSideHalf = lengthOnSide / 2;
-  CGSize rectSize = CGSizeMake(lengthOnSide, lengthOnSide);
+  CGFloat lengthOnSideHalf = LENGTH_ON_SIDE_FOR_CUBE / 2;
   
   // Front.
   {
-    CC3PlaneNode* planeNode = [CC3PlaneNode nodeWithName:NODE_NAME_FRONT];
-    [planeNode populateAsCenteredRectangleWithSize:rectSize];
-    planeNode.color = ccYELLOW;
-    planeNode.location = cc3v(0.0, 0.0, lengthOnSideHalf);
-    planeNode.rotation = cc3v(0.0, 0.0, 0.0);
-    planeNode.isTouchEnabled = YES;
-    [node addChild:planeNode];
+    
+    CC3MeshNode* meshNode = [self meshNodeWithName:NODE_NAME_FRONT 
+                                             color:ccYELLOW
+                                      LengthOnSide:LENGTH_ON_SIDE_FOR_CUBE
+                                          location:cc3v(0.0, 0.0, lengthOnSideHalf) 
+                                           rotaion:cc3v(0.0, 0.0, 0.0)];
+    [node addChild:meshNode];
   }
   
   // Back.
   {
-    CC3PlaneNode* planeNode = [CC3PlaneNode nodeWithName:NODE_NAME_BACK];
-    [planeNode populateAsCenteredRectangleWithSize:rectSize];
-    planeNode.color = ccBLUE;
-    planeNode.location = cc3v(0.0, 0.0, -lengthOnSideHalf);
-    planeNode.rotation = cc3v(180.0, 0.0, 0.0);
-    planeNode.isTouchEnabled = YES;
-    [node addChild:planeNode];
-  }                                      
-  
+    
+    CC3MeshNode* meshNode = [self meshNodeWithName:NODE_NAME_BACK
+                                             color:ccBLUE
+                                      LengthOnSide:LENGTH_ON_SIDE_FOR_CUBE
+                                          location:cc3v(0.0, 0.0, -lengthOnSideHalf)
+                                           rotaion:cc3v(180.0, 0.0, 0.0)];
+    [node addChild:meshNode];
+  }
+
   // Left.
   {
-    CC3PlaneNode* planeNode = [CC3PlaneNode nodeWithName:NODE_NAME_LEFT];
-    [planeNode populateAsCenteredRectangleWithSize:rectSize];
-    planeNode.color = ccGREEN;
-    planeNode.location = cc3v(-lengthOnSideHalf, 0.0, 0.0);
-    planeNode.rotation = cc3v(0.0, -90.0, 0.0);
-    planeNode.isTouchEnabled = YES;
-    [node addChild:planeNode];
-  }                                      
-  
-  // Right
+    
+    CC3MeshNode* meshNode = [self meshNodeWithName:NODE_NAME_LEFT
+                                             color:ccGREEN
+                                      LengthOnSide:LENGTH_ON_SIDE_FOR_CUBE
+                                          location:cc3v(-lengthOnSideHalf, 0.0, 0.0) 
+                                           rotaion:cc3v(0.0, -90.0, 0.0)];
+    [node addChild:meshNode];
+  }
+
+  // Right.
   {
-    CC3PlaneNode* planeNode = [CC3PlaneNode nodeWithName:NODE_NAME_RIGHT];
-    [planeNode populateAsCenteredRectangleWithSize:rectSize];
-    planeNode.color = ccRED;
-    planeNode.location = cc3v(lengthOnSideHalf, 0.0, 0.0);
-    planeNode.rotation = cc3v(0.0, 90.0, 0.0);
-    planeNode.isTouchEnabled = YES;
-    [node addChild:planeNode];
-  }                                      
-  
-  // Top
+    
+    CC3MeshNode* meshNode = [self meshNodeWithName:NODE_NAME_RIGHT
+                                             color:ccRED
+                                      LengthOnSide:LENGTH_ON_SIDE_FOR_CUBE
+                                          location:cc3v(lengthOnSideHalf, 0.0, 0.0) 
+                                           rotaion:cc3v(0.0, 90.0, 0.0)];
+    [node addChild:meshNode];
+  }
+
+  // Top.
   {
-    CC3PlaneNode* planeNode = [CC3PlaneNode nodeWithName:NODE_NAME_TOP];
-    [planeNode populateAsCenteredRectangleWithSize:rectSize];
-    planeNode.color = ccMAGENTA;
-    planeNode.location = cc3v(0.0, lengthOnSideHalf, 0.0);
-    planeNode.rotation = cc3v(-90.0, 0.0, 0.0);
-    planeNode.isTouchEnabled = YES;
-    [node addChild:planeNode];
-  }                                      
-  
-  // Bottom
+    
+    CC3MeshNode* meshNode = [self meshNodeWithName:NODE_NAME_TOP
+                                             color:ccMAGENTA
+                                      LengthOnSide:LENGTH_ON_SIDE_FOR_CUBE
+                                          location:cc3v(0.0, lengthOnSideHalf, 0.0) 
+                                           rotaion:cc3v(-90.0, 0.0, 0.0)];
+    [node addChild:meshNode];
+  }
+
+  // Bottom.
   {
-    CC3PlaneNode* planeNode = [CC3PlaneNode nodeWithName:NODE_NAME_BOTTOM];
-    [planeNode populateAsCenteredRectangleWithSize:rectSize];
-    planeNode.color = ccORANGE;
-    planeNode.location = cc3v(0.0, -lengthOnSideHalf, 0.0);
-    planeNode.rotation = cc3v(90.0, 0.0, 0.0);
-    planeNode.isTouchEnabled = YES;
-    [node addChild:planeNode];
+    
+    CC3MeshNode* meshNode = [self meshNodeWithName:NODE_NAME_BOTTOM
+                                             color:ccORANGE
+                                      LengthOnSide:LENGTH_ON_SIDE_FOR_CUBE
+                                          location:cc3v(0.0, -lengthOnSideHalf, 0.0) 
+                                           rotaion:cc3v(90.0, 0.0, 0.0)];
+    [node addChild:meshNode];
   }
   
   return node;
